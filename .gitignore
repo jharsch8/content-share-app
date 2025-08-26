@@ -1,0 +1,24 @@
+# Node dependencies
+# This folder contains all the external libraries your project needs. 
+# It's usually very large and can be regenerated at any time by running the npm install command.
+# We don't want to store this in our repository.
+/node_modules
+
+# Environment variables file
+# This file is used to store private information like passwords and API keys. 
+# This is critical for security; it should never be committed to Git.
+.env
+
+# VS Code specific files
+# This folder contains configuration settings for your specific VS Code setup. 
+# It's not part of the project itself, so we want to ignore it.
+.vscode
+
+# Log files and OS generated files: These are temporary files and are not necessary for the project.
+# Log files
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
