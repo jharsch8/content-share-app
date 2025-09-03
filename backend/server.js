@@ -1,3 +1,12 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
+// Connect to MongoDB
+const mongoose = require('mongoose');
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB connected...'))
+    .catch(err => console.log(err));
+
 // Import the express library, which is a web framework for Node.js.
 const express = require('express');
 
