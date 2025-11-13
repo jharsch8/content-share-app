@@ -7,37 +7,21 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log(err));
 
-// Import the express library, which is a web framework for Node.js.
-const express = require('express');
+// Import the Content Model
+const Content = require('./models/Content');
 
-// Create an instance of the Express application.
+// Import the express library, which is a web framework for Node.js. Create an instance of the Express application.
+const express = require('express');
 const app = express();
+// Middleware to parse incoming JSON data
+app.use(express.json());
+
+// Middleware for Cross-Origin Resource Sharing
+const cors = require('cors');
+app.use(cors());
 
 // Define the port the server will listen on. A common choice for development is 5000.
 const port = 5000;
-
-// Hard-coded data to simulate a database response.
-// In a real application, this data would come from a database like MongoDB or PostgreSQL.
-const content = [
-  {
-    id: 1,
-    title: 'First Post',
-    description: 'This is the first piece of content.',
-    mediaUrl: 'https://placehold.co/600x400.png',
-  },
-  {
-    id: 2,
-    title: 'Second Post',
-    description: 'This is the second piece of content.',
-    mediaUrl: 'https://placehold.co/400x600.png',
-  },
-  {
-    id: 3,
-    title: 'Third Post',
-    description: 'This is the third piece of content.',
-    mediaUrl: 'https://placehold.co/600x400.png',
-  },
-];
 
 // Define a URL stub, or route/path, for the root URL ('/').
 // When a user visits http://localhost:5000/, this function will be executed.
@@ -48,9 +32,55 @@ app.get('/', (req, res) => {
 
 // Define an API endpoint at '/api/content'.
 // This is the route our frontend will use to get the content data.
-app.get('/api/content', (req, res) => {
-  // Send the 'content' array as a JSON response.
-  res.json(content);
+app.get('/api/content', async (req, res) => {
+  try {
+    // Use the Content model to find all documents in the 'contents' collection
+    const contentFromDB = await Content.find();
+    res.json(contentFromDB);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// API Route to add new content to the MongoDB database
+app.post('/api/content', async (req, res) => {
+  try {
+    // Create a new content item using data from the request body
+    const newContent = new Content({
+      title: req.body.title,
+      description: req.body.description,
+      mediaUrl: req.body.mediaUrl,
+    });
+
+    // Save the new content item to the database
+    const content = await newContent.save();
+
+    // Respond with the newly created item and a 201 status code (Created)
+    res.status(201).json(content);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// API Route to delete content from DB by ID
+app.delete('/api/content/:id', async (req, res) => {
+  try {
+    // Find the content item by ID and remove it from the database
+    const content = await Content.findByIdAndDelete(req.params.id);
+    if (!content) {
+      return res.status(404).json({ msg: 'Content not found' });
+    }
+    // Respond with a success message
+    res.json({ msg: 'Content deleted' });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Content not found' });
+    }
+    res.status(500).send('Server Error');
+  } 
 });
 
 // Start the server and listen for incoming requests on the specified port.
